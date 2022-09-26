@@ -10,4 +10,19 @@ block content
       value=video.title,
       required
     )
+    input(
+      name="description",
+      placeholder="Description",
+      value=video.description,
+      required,
+      type="text",
+      minlength=20
+    )
+    input(
+      name="hashtags",
+      placeholder="Hashtags, seperated by comma",
+      value=video.hashtags.join(),
+      required,
+      type="text"
+    )
     input(type="submit", value="Save")
