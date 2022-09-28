@@ -5,12 +5,17 @@ html(lang="en")
     link(rel="stylesheet", href="https://unpkg.com/mvp.css@1.11/mvp.css")
 
   body
-    h3 
-      a(href="/videos/upload") Upload Video
-    h3
-      a(href="/") Home
     header 
-      h1= pageTitle
+      header 
+        h1= pageTitle
+      nav 
+        ul 
+          li 
+            a(href="/videos/upload") Upload Video
+          li
+            a(href="/") Home
+          li
+            a(href="/search") Search
 
     main
       block content
