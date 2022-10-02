@@ -6,8 +6,7 @@ html(lang="en")
 
   body
     header 
-      header 
-        h1= pageTitle
+      h1= pageTitle
       nav 
         ul 
           li 
@@ -16,8 +15,17 @@ html(lang="en")
             a(href="/") Home
           li
             a(href="/search") Search
-          li 
-            a(href="/join") Join
+          if loggedIn
+            li 
+              a(href="/logout") Log Out
+            li 
+              a(href="/my-profile") #{ loggedInUser.name } Profile
+
+          else
+            li 
+              a(href="/join") Join
+            li 
+              a(href="/login") Login
 
     main
       block content
