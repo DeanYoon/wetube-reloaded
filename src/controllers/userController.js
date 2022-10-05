@@ -47,6 +47,7 @@ export const postLogin = async (req, res) => {
   // check exist username
   const user = await User.findOne({
     username,
+    socialOnly: false,
   });
   if (!user) {
     return res.status(400).render("login", {
@@ -76,6 +77,7 @@ export const startGithubLogin = (req, res) => {
   };
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
+
   return res.redirect(finalUrl);
 };
 export const finishGithubLogin = async (req, res) => {
@@ -85,6 +87,7 @@ export const finishGithubLogin = async (req, res) => {
     client_secret: process.env.GH_SECRET,
     code: req.query.code,
   };
+
   const params = new URLSearchParams(config).toString();
   const finalUrl = `${baseUrl}?${params}`;
   const tokenRequest = await (
@@ -98,19 +101,53 @@ export const finishGithubLogin = async (req, res) => {
   if ("access_token" in tokenRequest) {
     //access api
     const { access_token } = tokenRequest;
-    const userRequest = await (
-      await fetch("https://api.github.com/user", {
+    const apiUrl = "https://api.github.com";
+    const userData = await (
+      await fetch(`${apiUrl}/user`, {
         headers: {
           Authorization: `token ${access_token}`,
         },
       })
     ).json();
-    console.log(userRequest);
+
+    const emailData = await (
+      await fetch(`${apiUrl}/user/emails`, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      })
+    ).json();
+    const emailObject = emailData.find(
+      (email) => email.primary === true && email.verified === true
+    ); // find primary and verified email object
+    if (!emailObject) {
+      return res.redirect("/login");
+    } /// if there's no email, go back to login page
+    let user = await User.findOne({ email: emailObject.email });
+
+    if (!user) {
+      // If there's no account from github in the database
+      //create an account
+      const user = await User.create({
+        avatarUrl: userData.avatar_url,
+        name: userData.name,
+        username: userData.login,
+        email: emailObject.email,
+        password: "",
+        socialOnly: true,
+        location: userData.location,
+      });
+    }
+    req.session.loggedIn = true;
+    req.session.user = user;
+    return res.redirect("/");
   } else {
     return res.redirect("/login");
   }
 };
 export const edit = (req, res) => res.send("Edit User");
-export const remove = (req, res) => res.send("remove user");
-export const logout = (req, res) => res.send("Log out");
+export const logout = (req, res) => {
+  req.session.destroy();
+  return res.redirect("/");
+};
 export const see = (req, res) => res.send("See");
